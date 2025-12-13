@@ -36,3 +36,65 @@ class GitHubService:
             }
         )
         return data["user"]
+
+    async def get_user_repositories(self, username: str):
+        data=await self.send_query(
+            QueryNames.USER_REPOSITORIES,
+            {
+                "username": username
+            }
+        )
+        return data["user"]["repositories"]
+
+    async def get_repository_details(self, owner: str, name: str):
+        data=await self.send_query(
+            QueryNames.REPOSITORY_DETAILS,
+            {
+                "owner": owner,
+                "name": name
+            }
+        )
+        return data["repository"]
+
+    async def get_directory_tree(self, owner: str, name: str):
+        data=await self.send_query(
+            QueryNames.DIRECTORY_TREE,
+            {
+                "owner": owner,
+                "name": name
+            }
+        )
+        return data["repository"]["object"]
+
+    async def get_contribution_stats(self, owner: str, name: str):
+        data=await self.send_query(
+            QueryNames.CONTRIBUTION_STATS,
+            {
+                "owner": owner,
+                "name": name
+            }
+        )
+        return data["repository"]
+
+    async def get_file_content(self, owner: str, name: str, path: str):
+        data=await self.send_query(
+            QueryNames.FILE_CONTENT,
+            {
+                "owner": owner,
+                "name": name,
+                "path": path
+            }
+        )
+        return data["repository"]["object"]
+
+
+    async def get_user_contributions(self, owner: str, name: str, author_id: str):
+        data=await self.send_query(
+            QueryNames.USER_CONTRIBUTIONS,
+            {
+                "owner": owner,
+                "name": name,
+                "author_id": author_id
+            }
+        )
+        return data["repository"]
