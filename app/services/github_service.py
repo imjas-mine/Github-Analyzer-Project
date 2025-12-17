@@ -1,4 +1,6 @@
 import httpx
+import redis.asyncio as redis
+import json
 from app.core.config import settings
 from app.graphql import load_query, QueryNames
 
@@ -10,6 +12,7 @@ class GitHubService:
             "Authorization": f"Bearer {settings.GITHUB_TOKEN}",
             "Content-Type": "application/json",
         }
+        self.redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
     async def send_query(self, query_name: str, variables: dict = None):
         query = load_query(query_name)
@@ -37,14 +40,14 @@ class GitHubService:
         return data["user"]["repositories"]
 
     async def get_repository_details(self, owner: str, name: str):
-        data = await self.send_query(
-            QueryNames.REPOSITORY_DETAILS, {"owner": owner, "name": name}
+        data = await self.get_cached_query(
+            QueryNames.REPOSITORY_DETAILS, {"owner": owner, "name": name}, ttl=600
         )
         return data["repository"]
 
     async def get_directory_tree(self, owner: str, name: str):
-        data = await self.send_query(
-            QueryNames.DIRECTORY_TREE, {"owner": owner, "name": name}
+        data = await self.get_cached_query(
+            QueryNames.DIRECTORY_TREE, {"owner": owner, "name": name}, ttl=600
         )
         return data["repository"]["object"]
 
@@ -54,10 +57,9 @@ class GitHubService:
         )
         return data["repository"]
 
-    async def get_file_content(self, owner: str, name: str, expression: str):
-        data = await self.send_query(
-            QueryNames.FILE_CONTENT,
-            {"owner": owner, "name": name, "expression": expression},
+    async def get_file_content(self, owner: str, name: str, path: str):
+        data = await self.get_cached_query(
+            QueryNames.FILE_CONTENT, {"owner": owner, "name": name, "path": path}, ttl=600
         )
         return data["repository"]["object"]
 
@@ -67,3 +69,22 @@ class GitHubService:
             {"owner": owner, "name": name, "author_id": author_id},
         )
         return data["repository"]
+
+    async def get_cached_query(self, query_name:str, variables:dict, ttl:int=300):
+        vars_str = json.dumps(variables or {}, sort_keys=True)
+        cache_key=f"{query_name}:{vars_str}"
+        try:
+            cached_data=await self.redis.get(cache_key)
+            if cached_data:
+                return json.loads(cached_data)
+        except Exception:
+            pass
+        
+        data=await self.send_query(query_name, variables)
+
+        try:
+            await self.redis.set(cache_key, json.dumps(data), ex=ttl)
+        except Exception:
+            pass
+        
+        return data

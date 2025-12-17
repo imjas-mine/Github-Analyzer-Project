@@ -28,7 +28,7 @@ Analyze the repo and return JSON with:
 Only include HIGH-LEVEL technologies that define the project stack:
 ✅ INCLUDE: Programming languages (Python, JavaScript, TypeScript, Java), Major frameworks (React, Django, Spring Boot, Express, FastAPI, Next.js), Databases (PostgreSQL, MongoDB, Redis), Infrastructure (Docker, Kubernetes, AWS, Firebase), Build tools (Webpack, Vite), ORMs (Prisma, SQLAlchemy, Hibernate)
 
-❌ EXCLUDE: Utility libraries (uuid, dotenv, cors, helmet, morgan), Dev tools (nodemon, eslint, prettier), Small helpers (lodash, moment, axios), Testing libs (jest, pytest unless it's a testing framework project)
+❌ EXCLUDE: Utility libraries (uuid, dotenv, cors, helmet, morgan), Dev tools (nodemon, eslint, prettier), Small helpers (lodash, moment, axios)
 
 Examples:
 - Good: ["TypeScript", "React", "Next.js", "PostgreSQL", "Prisma", "Docker"]
