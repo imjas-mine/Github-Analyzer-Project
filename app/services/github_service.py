@@ -70,13 +70,32 @@ class GitHubService:
         )
         return data["repository"]["object"]
 
-    async def get_user_contributions(self, owner: str, name: str, author_id: str):
+    async def get_user_contributions(self, owner: str, name: str, username: str):
+        # 1. Fetch User ID first (required for history filter)
+        print(f"Fetching ID for user {username}")
+        user_profile = await self.get_user_profile(username)
+        author_id = user_profile.get("id")
+
+        if not author_id:
+            raise Exception(f"Could not find user ID for {username}")
+
+        # 2. Fetch contributions using the ID
+        print(f"Fetching contributions for {owner}/{name} using author ID {author_id}")
         data = await self.send_query(
             QueryNames.USER_CONTRIBUTIONS,
-            {"owner": owner, "name": name, "author_id": author_id},
+            {"owner": owner, "name": name, "authorId": author_id},
         )
-        print("User contributions:", data)
-        return data["repository"]
+
+        # 3. Extract and return
+        repo_data = data.get("repository", {})
+
+        # Extract commits
+        history = (
+            repo_data.get("defaultBranchRef", {}).get("target", {}).get("history", {})
+        )
+        commits = history.get("nodes", []) if history else []
+
+        return {"commits": commits, "total_count": len(commits)}
 
     async def get_cached_query(self, query_name: str, variables: dict, ttl: int = 300):
         vars_str = json.dumps(variables or {}, sort_keys=True)
