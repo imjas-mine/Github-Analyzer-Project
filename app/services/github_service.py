@@ -40,24 +40,29 @@ class GitHubService:
         return data["user"]["repositories"]
 
     async def get_repository_details(self, owner: str, name: str):
+        print("Fetching repository details from github api")
         data = await self.get_cached_query(
             QueryNames.REPOSITORY_DETAILS, {"owner": owner, "name": name}, ttl=600
         )
         return data["repository"]
 
     async def get_directory_tree(self, owner: str, name: str):
+        print("Fetching directory tree from github api")
         data = await self.get_cached_query(
             QueryNames.DIRECTORY_TREE, {"owner": owner, "name": name}, ttl=600
         )
         return data["repository"]["object"]
 
-    async def get_contribution_stats(self, owner: str, name: str):
+    async def get_contribution_stats(self, owner: str, name: str, username: str):
         data = await self.send_query(
-            QueryNames.CONTRIBUTION_STATS, {"owner": owner, "name": name}
+            QueryNames.CONTRIBUTION_STATS,
+            {"owner": owner, "name": name, "username": username},
         )
+        print("Contribution stats:", data)
         return data["repository"]
 
     async def get_file_content(self, owner: str, name: str, path: str):
+        print("Fetching file content from github api")
         data = await self.get_cached_query(
             QueryNames.FILE_CONTENT,
             {"owner": owner, "name": name, "expression": path},
@@ -70,6 +75,7 @@ class GitHubService:
             QueryNames.USER_CONTRIBUTIONS,
             {"owner": owner, "name": name, "author_id": author_id},
         )
+        print("User contributions:", data)
         return data["repository"]
 
     async def get_cached_query(self, query_name: str, variables: dict, ttl: int = 300):
@@ -78,6 +84,7 @@ class GitHubService:
         try:
             cached_data = await self.redis.get(cache_key)
             if cached_data:
+                print("Using cached response before sending query")
                 return json.loads(cached_data)
         except Exception:
             pass
@@ -86,6 +93,7 @@ class GitHubService:
 
         try:
             await self.redis.set(cache_key, json.dumps(data), ex=ttl)
+            print("Storing github api response in cache")
         except Exception:
             pass
 
