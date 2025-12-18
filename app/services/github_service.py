@@ -94,13 +94,39 @@ class GitHubService:
         # 3. Extract and return
         repo_data = data.get("repository", {})
 
-        # Extract commits
+        # Extract commits (already filtered by authorId in GraphQL)
         history = (
             repo_data.get("defaultBranchRef", {}).get("target", {}).get("history", {})
         )
         commits = history.get("nodes", []) if history else []
 
-        return {"commits": commits, "total_count": len(commits)}
+        # Helper to filter by author login
+        # We use the login from the profile to ensure case-insensitive matching if needed,
+        # though usually they match.
+        target_login = user_profile.get("login")
+
+        # Extract and filter PRs
+        all_prs = repo_data.get("pullRequests", {}).get("nodes", [])
+        user_prs = [
+            pr
+            for pr in all_prs
+            if pr.get("author") and pr["author"].get("login") == target_login
+        ]
+
+        # Extract and filter Issues
+        all_issues = repo_data.get("issues", {}).get("nodes", [])
+        user_issues = [
+            issue
+            for issue in all_issues
+            if issue.get("author") and issue["author"].get("login") == target_login
+        ]
+
+        return {
+            "commits": commits,
+            "pull_requests": user_prs,
+            "issues": user_issues,
+            "total_count": len(commits) 
+        }
 
     async def get_cached_query(self, query_name: str, variables: dict, ttl: int = 300):
         vars_str = json.dumps(variables or {}, sort_keys=True)
