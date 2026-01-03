@@ -164,3 +164,21 @@ class GitHubService:
             print(f"DEBUG: Redis set error: {e}")
 
         return data
+
+    async def get_contribution_calendar(self, username: str):
+        data = await self.get_cached_query(
+            QueryNames.CONTRIBUTION_CALENDAR, {"username": username}, ttl=600
+        )
+
+        user_data = data.get("user", {})
+        contributions = user_data.get("contributionsCollection", {})
+        calendar = contributions.get("contributionCalendar", {})
+
+        return {
+            "username": user_data.get("login"),
+            "totalContributions": calendar.get("totalContributions", 0),
+            "totalCommitContributions": contributions.get(
+                "totalCommitContributions", 0
+            ),
+            "weeks": calendar.get("weeks", []),
+        }

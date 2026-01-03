@@ -1,0 +1,22 @@
+# Fetch user's contribution calendar for 3D visualization
+# Returns daily contribution counts organized by week
+query GetContributionCalendar($username: String!) {
+    user(login: $username) {
+        login
+        contributionsCollection {
+            totalCommitContributions
+            contributionCalendar {
+                totalContributions
+                weeks {
+                    firstDay
+                    contributionDays {
+                        date
+                        contributionCount
+                        weekday
+                        color
+                    }
+                }
+            }
+        }
+    }
+}

@@ -74,3 +74,9 @@ async def analyze_repository(owner: str, repo: str, username: str = "default"):
 async def analyze_user_contributions(owner: str, repo: str, username: str):
     analyzer = RepoAnalyzerService()
     return await analyzer.analyze_contributions(owner, repo, username)
+
+
+@router.get("/users/{username}/contribution-calendar")
+async def get_contribution_calendar(username: str):
+    github_service = GitHubService()
+    return await github_service.get_contribution_calendar(username)
