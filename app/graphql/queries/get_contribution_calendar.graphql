@@ -1,9 +1,11 @@
 # Fetch user's contribution calendar for 3D visualization
 # Returns daily contribution counts organized by week
-query GetContributionCalendar($username: String!) {
+# from/to parameters allow fetching specific year's data
+query GetContributionCalendar($username: String!, $from: DateTime!, $to: DateTime!) {
     user(login: $username) {
         login
-        contributionsCollection {
+        createdAt
+        contributionsCollection(from: $from, to: $to) {
             totalCommitContributions
             contributionCalendar {
                 totalContributions

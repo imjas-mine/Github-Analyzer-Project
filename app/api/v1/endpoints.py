@@ -77,6 +77,6 @@ async def analyze_user_contributions(owner: str, repo: str, username: str):
 
 
 @router.get("/users/{username}/contribution-calendar")
-async def get_contribution_calendar(username: str):
+async def get_contribution_calendar(username: str, year: int = None):
     github_service = GitHubService()
-    return await github_service.get_contribution_calendar(username)
+    return await github_service.get_contribution_calendar(username, year)

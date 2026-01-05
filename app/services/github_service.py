@@ -3,6 +3,7 @@ import redis.asyncio as redis
 import json
 from app.core.config import settings
 from app.graphql import load_query, QueryNames
+from datetime import datetime
 
 
 class GitHubService:
@@ -165,17 +166,34 @@ class GitHubService:
 
         return data
 
-    async def get_contribution_calendar(self, username: str):
+    async def get_contribution_calendar(self, username: str, year: int = None):
+
+        # Default to current year if not specified
+        if year is None:
+            year = datetime.now().year
+
+        # Calculate date range for the specified year
+        from_date = f"{year}-01-01T00:00:00Z"
+        to_date = f"{year}-12-31T23:59:59Z"
+
         data = await self.get_cached_query(
-            QueryNames.CONTRIBUTION_CALENDAR, {"username": username}, ttl=600
+            QueryNames.CONTRIBUTION_CALENDAR,
+            {"username": username, "from": from_date, "to": to_date},
+            ttl=600,
         )
 
         user_data = data.get("user", {})
         contributions = user_data.get("contributionsCollection", {})
         calendar = contributions.get("contributionCalendar", {})
 
+        # Get user's account creation year to determine available years
+        created_at = user_data.get("createdAt", "")
+        account_created_year = int(created_at[:4]) if created_at else 2008
+
         return {
             "username": user_data.get("login"),
+            "year": year,
+            "accountCreatedYear": account_created_year,
             "totalContributions": calendar.get("totalContributions", 0),
             "totalCommitContributions": contributions.get(
                 "totalCommitContributions", 0
