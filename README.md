@@ -1,6 +1,7 @@
 # GitHub Analyzer API
 
-A FastAPI backend that connects to GitHub's GraphQL API to fetch and analyze user profiles and repositories.
+A FastAPI backend that connects to GitHub's GraphQL API to fetch and analyze user profiles and repositories using AI.
+Website is available at : https://www.gitanalyzer.me/
 
 ## Features
 
@@ -9,6 +10,7 @@ A FastAPI backend that connects to GitHub's GraphQL API to fetch and analyze use
 - Analyze user contributions in open-source or group projects
 - Detect frameworks and technologies used in projects
 - AI-powered project description generation
+- 3d vizualization of git commit history
 
 
 
